@@ -1,9 +1,9 @@
 terraform {
-  source = "tfr:///terraform-aws-modules/vpc/aws//.?version=5.14.0"
+  source = "tfr:///terraform-aws-modules/vpc/aws//.?version=5.2.0"
 }
 
 include "root" {
-  path = find_in_parent_folders()
+  path = find_in_parent_folders("root.hcl")
 }
 
 include "env" {
@@ -22,7 +22,7 @@ inputs = {
   enable_dns_hostnames                 = include.env.locals.vpc_enable_dns_hostnames
   enable_dns_support                   = include.env.locals.vpc_enable_dns_support
   enable_nat_gateway                   = include.env.locals.vpc_nat_gateway
-  single_nat_gateway                   = include.env.locals.vpc_single_nat_gateways
+  single_nat_gateway                   = include.env.locals.vpc_single_nat_gateway
 
   tags                                  = include.env.locals.tags
 }

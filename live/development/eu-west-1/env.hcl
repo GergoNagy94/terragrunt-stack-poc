@@ -4,12 +4,10 @@ locals {
 
     project         = local.project_vars.locals.project
     project_version = local.project_vars.locals.project_version
-    default_region  = local.project_vars.locals.default_region
+    #default_region  = local.project_vars.locals.default_region
 
     account_id = local.account_vars.locals.account_id
     env        = local.account_vars.locals.account
-      
-    region                   = "eu-west-1"
 
     # Modules set true are ignored during Terraform run
     skip_module = {
