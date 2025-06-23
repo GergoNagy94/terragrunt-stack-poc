@@ -1,5 +1,5 @@
 locals {
-    project         = "terragrunt"
+    project         = "terragrunt-gergo"
     project_version = "v1.0.0"
 
     organization_id        = "o-00000000000"
