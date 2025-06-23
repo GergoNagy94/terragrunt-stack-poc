@@ -8,12 +8,12 @@ locals {
   env        = local.account_vars.locals.account
   region     = local.env_vars.locals.region
 
-  s3_state_region       = "eu-central-1"
+  s3_state_region = "eu-central-1"
 }
 
 remote_state {
-  backend     = "s3"
-  generate    = {
+  backend = "s3"
+  generate = {
     path      = "backend.tf"
     if_exists = "overwrite_terragrunt"
   }
@@ -21,8 +21,8 @@ remote_state {
     bucket         = "${local.project}-${local.env}-terraform-state"
     key            = "${path_relative_to_include()}/terraform.tfstate"
     region         = "${local.s3_state_region}"
-    encrypt         = true
-    dynamodb_table  = "${local.project}-${local.env}-terraform-state-lock"
+    encrypt        = true
+    dynamodb_table = "${local.project}-${local.env}-terraform-state-lock"
   }
 }
 
