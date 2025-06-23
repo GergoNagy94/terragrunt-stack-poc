@@ -18,5 +18,6 @@ unit "vpc" {
     tags = local.env.locals.tags
   }
 
+  no_dot_terragrunt_stack = true
   skip = local.env.locals.skip_module.vpc
 }
