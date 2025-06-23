@@ -9,7 +9,7 @@ include "env" {
 }
 
 terraform {
-  source = "git::https://github.com/GergoNagy94/module-versions-demo//modules/vpc?ref=main"
+  source = "git::https://github.com/GergoNagy94/module-versions-demo//modules/vpc?ref=module/use-modules"
 }
 
 inputs = {
