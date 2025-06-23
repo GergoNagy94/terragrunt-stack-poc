@@ -1,46 +1,41 @@
 locals {
-  account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
   env_vars     = read_terragrunt_config(find_in_parent_folders("env.hcl"))
+  account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
   project_vars = read_terragrunt_config(find_in_parent_folders("project.hcl"))
 
-  account_name = local.account_vars.locals.account_name
-  account_id   = local.account_vars.locals.aws_account_id
-  aws_region   = local.env_vars.locals.aws_region
-  project_name = local.project_vars.locals.project_name
+  project    = local.project_vars.locals.project
+  account_id = local.account_vars.locals.account_id
+  env        = local.account_vars.locals.account
+  region     = local.env_vars.locals.region
+
+  s3_state_region       = "us-east-1"
 }
 
 remote_state {
-  backend = "s3"
-  config = {
-    encrypt        = true
-    bucket         = "${local.project}-${local.account_name}-${local.aws_region}"
-    key            = "${path_relative_to_include()}/tf.tfstate"
-    region         = local.aws_region
-    dynamodb_table = "tf-locks"
-  }
-  generate = {
+  backend     = "s3"
+  generate    = {
     path      = "backend.tf"
     if_exists = "overwrite_terragrunt"
+  }
+  config = {
+    bucket         = "${local.project}-${local.env}-terraform-state"
+    key            = "${path_relative_to_include()}/terraform.tfstate"
+    region         = "${local.s3_state_region}"
+    encrypt         = true
+    dynamodb_table  = "${local.project}-${local.env}-terraform-state-lock"
   }
 }
 
 generate "provider" {
   path      = "provider.tf"
   if_exists = "overwrite_terragrunt"
-  contents  = <<EOF
-provider "aws" {
-  region = "${local.aws_region}"
 
-  allowed_account_ids = ["${local.account_id}"]
+  contents = <<EOF
+provider "aws" {
+  region  = "${local.region}"
+  assume_role {
+      role_arn     = "arn:aws:iam::${local.account_id}:role/terragrunt-execution-role"
+    }
 }
 EOF
 }
-
-catalog {
-  urls = []
-}
-
-inputs = merge(
-  local.account_vars.locals,
-  local.env_vars.locals,
-)
