@@ -8,7 +8,7 @@ locals {
   env        = local.account_vars.locals.account
   region     = local.env_vars.locals.region
 
-  s3_state_region       = "us-east-1"
+  s3_state_region       = "eu-central-1"
 }
 
 remote_state {
