@@ -9,6 +9,7 @@ locals {
   region     = local.env_vars.locals.region
 
   s3_state_region = "eu-central-1"
+  test            = "test_value"
 }
 
 remote_state {
@@ -39,3 +40,7 @@ provider "aws" {
 }
 EOF
 }
+
+inputs = merge(
+  local.env_vars.locals,
+)
