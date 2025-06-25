@@ -9,6 +9,13 @@ locals {
   env             = local.account_vars.locals.account
   region          = local.env_vars.locals.region
 
+  default_tags = {
+    createdBy       = "Terragrunt"
+    environment     = local.env
+    project         = local.project
+    project_version = local.project_version
+  }
+
   s3_state_region = "eu-central-1"
 }
 
@@ -34,6 +41,11 @@ generate "provider" {
   contents = <<EOF
 provider "aws" {
   region  = "${local.region}"
+
+  default_tags {
+    tags = ${jsonencode(local.default_tags)}
+  }
+  
   assume_role {
       role_arn     = "arn:aws:iam::${local.account_id}:role/terragrunt-execution-role"
     }
@@ -41,13 +53,6 @@ provider "aws" {
 EOF
 }
 
-inputs = merge(
-  {
-    tags = {
-      createdBy       = "Terragrunt"
-      environment     = "${local.env}"
-      project         = "${local.project}"
-      project-version = "${local.project_version}"
-    }
-  },
-)
+inputs = {
+  tags = local.default_tags
+}
