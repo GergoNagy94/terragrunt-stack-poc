@@ -52,7 +52,3 @@ provider "aws" {
 }
 EOF
 }
-
-inputs = {
-  tags = local.default_tags
-}
