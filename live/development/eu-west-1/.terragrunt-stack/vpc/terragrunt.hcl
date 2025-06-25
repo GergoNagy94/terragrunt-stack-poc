@@ -17,4 +17,6 @@ inputs = {
   enable_dns_support     = values.enable_dns_support
   enable_nat_gateway     = values.enable_nat_gateway
   single_nat_gateway     = values.single_nat_gateway
+
+  tags = values.tags
 }
