@@ -1,5 +1,5 @@
 locals {
-  env_vars     = read_terragrunt_config(find_in_parent_folders("env.hcl"))
+  env_vars     = read_terragrunt_config(find_in_parent_folders("region.hcl"))
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
   project_vars = read_terragrunt_config(find_in_parent_folders("project.hcl"))
 
