@@ -1,5 +1,5 @@
 unit "vpc" {
-  source = "git::git@github.com:GergoNagy94/module-versions-demo-catalog//units/vpc?ref=main"
+  source = "../../../../units/vpc"
 
   path = "vpc"
 
@@ -18,7 +18,7 @@ unit "vpc" {
 }
 
 unit "web_sg" {
-  source = "git::git@github.com:GergoNagy94/module-versions-demo-catalog//units/sg?ref=main"
+  source = "../../../../units/sg"
 
   path = "web-sg"
 
