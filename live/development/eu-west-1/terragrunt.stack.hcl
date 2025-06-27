@@ -18,45 +18,52 @@ unit "vpc" {
 }
 
 unit "web_sg" {
-  source = "git::git@github.com:GergoNagy94/module-versions-demo-catalog//units/security-group?ref=main"
+  source = "git::git@github.com:GergoNagy94/module-versions-demo-catalog//units/sg?ref=main"
 
   path = "web-sg"
 
-  depends_on = [
-    "unit.vpc"
-  ]
-
   values = {
-    vpc_id = dependency.vpc.outputs.vpc_id
-    
     name        = "web-security-group"
     description = "Security group for web servers"
-    
-    ingress_rules = [
+    vpc_path    = "../vpc"
+
+    ingress_with_cidr_blocks = [
       {
         from_port   = 80
         to_port     = 80
         protocol    = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
         description = "HTTP"
+        cidr_blocks = "0.0.0.0/0"
       },
       {
         from_port   = 443
         to_port     = 443
         protocol    = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
         description = "HTTPS"
+        cidr_blocks = "0.0.0.0/0"
+      },
+      {
+        from_port   = 22
+        to_port     = 22
+        protocol    = "tcp"
+        description = "SSH"
+        cidr_blocks = "10.0.0.0/16"
       }
     ]
-    
-    egress_rules = [
+
+    egress_with_cidr_blocks = [
       {
         from_port   = 0
         to_port     = 0
         protocol    = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
         description = "All outbound traffic"
+        cidr_blocks = "0.0.0.0/0"
       }
     ]
+
+    tags = {
+      Name    = "web-security-group"
+      Purpose = "web-servers"
+    }
   }
 }
