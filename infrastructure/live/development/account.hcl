@@ -1,4 +1,4 @@
 locals {
    account      = "development"
-   account_id   = "940482431327"
+   account_id   = "000000000000"
 }
