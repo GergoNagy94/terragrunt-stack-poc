@@ -1,5 +1,5 @@
 unit "vpc" {
-  source = "../../../../units/vpc"
+  source = "../../../units/vpc"
 
   path = "vpc"
 
@@ -18,7 +18,7 @@ unit "vpc" {
 }
 
 unit "web_sg" {
-  source = "../../../../units/sg"
+  source = "../../../units/sg"
 
   path = "web-sg"
 
