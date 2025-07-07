@@ -30,30 +30,27 @@ get_repository_name() {
     echo "${repo_name:-$(basename "$(pwd)")}"
 }
 
-# Default to units directory if no argument provided
 ENVIRONMENT="units"
 OUTDATED_ONLY=false
 
-# Parse arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --outdated)
-            OUTDATED_ONLY=true
-            shift
-            ;;
-        -* )
-            print_error "Unknown option $1"
-            print_error "Usage: $0 [--outdated] [<environment>]"
-            exit 1
-            ;;
-        *)
-            ENVIRONMENT="$1"
-            shift
-            ;;
+    --outdated)
+        OUTDATED_ONLY=true
+        shift
+        ;;
+    -*)
+        print_error "Unknown option $1"
+        print_error "Usage: $0 [--outdated] [<environment>]"
+        exit 1
+        ;;
+    *)
+        ENVIRONMENT="$1"
+        shift
+        ;;
     esac
 done
 
-# Validate that target directory exists
 if [[ ! -d "$ENVIRONMENT" ]]; then
     print_error "Directory '$ENVIRONMENT' not found."
     exit 1
@@ -105,7 +102,10 @@ get_latest_version() {
     local repo="$1" current="$2"
     local rel tag
     rel=$(curl -s "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name // empty' 2>/dev/null)
-    if [[ -n "$rel" ]]; then echo "$rel"; return; fi
+    if [[ -n "$rel" ]]; then
+        echo "$rel"
+        return
+    fi
     tag=$(curl -s "https://api.github.com/repos/$repo/tags?per_page=1" | jq -r '.[0].name // empty' 2>/dev/null)
     echo "${tag:-$current}"
 }
@@ -116,8 +116,10 @@ compare_versions() {
 
 get_module_type() {
     local src="$1"
-    if [[ "$src" =~ ^git:: ]]; then echo git;
-    elif [[ "$src" =~ ^\.\./ ]]; then echo local;
+    if [[ "$src" =~ ^git:: ]]; then
+        echo git
+    elif [[ "$src" =~ ^\.\./ ]]; then
+        echo local
     else echo unknown; fi
 }
 
@@ -126,7 +128,7 @@ generate_yaml_output() {
     if [[ "$OUTDATED_ONLY" == true ]]; then
         local filtered=()
         for r in "${results[@]}"; do
-            IFS='|' read -r unit mod cur lat stat type <<< "$r"
+            IFS='|' read -r unit mod cur lat stat type <<<"$r"
             [[ "$stat" == outdated ]] && filtered+=("$r")
         done
         if [[ ${#filtered[@]} -eq 0 ]]; then
@@ -145,7 +147,7 @@ generate_yaml_output() {
         echo
         echo "terraform_modules:"
         for r in "${results[@]}"; do
-            IFS='|' read -r unit mod cur lat stat type <<< "$r"
+            IFS='|' read -r unit mod cur lat stat type <<<"$r"
             echo "  - unit_name: \"$unit\""
             echo "    module_name: \"$mod\""
             echo "    module_type: \"$type\""
@@ -155,7 +157,7 @@ generate_yaml_output() {
             echo "    needs_update: $([[ $stat == outdated ]] && echo true || echo false)"
             echo
         done
-    } > "$OUTPUT_FILE"
+    } >"$OUTPUT_FILE"
     print_success "YAML generated: $OUTPUT_FILE"
 }
 
@@ -166,7 +168,10 @@ scan_terragrunt_files() {
         local unit=$(basename "$(dirname "$f")")
         print_status "Processing module: $unit"
         local src=$(extract_source "$f")
-        [[ -z "$src" ]] && { print_status "No source in $f, skipping"; continue; }
+        [[ -z "$src" ]] && {
+            print_status "No source in $f, skipping"
+            continue
+        }
         print_status "Found source: $src"
         local type=$(get_module_type "$src")
         if [[ $type == git ]]; then
