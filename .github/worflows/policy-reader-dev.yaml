@@ -1,0 +1,76 @@
+name: AWS Policy Reader
+
+on:
+  workflow_dispatch:
+    inputs:
+      role-name:
+        description: 'IAM role name to read'
+        required: true
+        default: 'terragrunt-execution-role'
+      environment:
+        description: 'Environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
+
+jobs:
+  read-aws-policies:
+    runs-on: ubuntu-latest
+    name: Read AWS Execution Policies - ${{ matrix.env }}
+    strategy:
+      matrix:
+        include:
+          - env: dev
+            account_id: '567749996660'
+          - env: prod  
+            account_id: '123456789012'
+    
+    steps:
+    - name: Checkout repository
+      if: matrix.env == inputs.environment
+      uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      if: matrix.env == inputs.environment
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+    
+    - name: Read AWS Role Policies
+      if: matrix.env == inputs.environment
+      id: read-policies
+      uses: GergoNagy94/devops-tools/aws-execution-policy-reader@main
+      with:
+        role-name: ${{ inputs.role-name }}
+        account-id: ${{ matrix.account_id }}
+        environment-name: ${{ matrix.env }}
+    
+    - name: Upload policies artifact
+      if: matrix.env == inputs.environment && steps.read-policies.outputs.has-role == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: aws-policies-${{ matrix.env }}-${{ github.run_number }}
+        path: ${{ steps.read-policies.outputs.policies-file }}
+    
+    - name: Display policies summary
+      if: matrix.env == inputs.environment && steps.read-policies.outputs.has-role == 'true'
+      shell: bash
+      run: |
+        echo "## AWS Role Policies Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Role Name**: ${{ inputs.role-name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Account ID**: ${{ matrix.account_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Environment**: ${{ matrix.env }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Policies File**: ${{ steps.read-policies.outputs.policies-file }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ -f "${{ steps.read-policies.outputs.policies-file }}" ]]; then
+          managed_count=$(jq '.policies.managed | length' "${{ steps.read-policies.outputs.policies-file }}")
+          inline_statements=$(jq '.policies.inline.Statement | length' "${{ steps.read-policies.outputs.policies-file }}")
+          echo "- **Managed Policies**: $managed_count" >> $GITHUB_STEP_SUMMARY
+          echo "- **Inline Policy Statements**: $inline_statements" >> $GITHUB_STEP_SUMMARY
+        fi
