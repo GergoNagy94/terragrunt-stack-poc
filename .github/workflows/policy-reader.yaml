@@ -1,4 +1,4 @@
-name: AWS Policy Reader - Terragrunt Stack POC
+name: AWS Policy Reader
 
 on:
   workflow_dispatch:
