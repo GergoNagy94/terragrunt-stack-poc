@@ -10,11 +10,13 @@ on:
       environment:
         description: 'Environment'
         required: true
-        default: 'dev'
+        default: 'development'
         type: choice
         options:
-          - dev
-          - prod
+          - development
+          - production
+          - management
+          - monitoring
 
 jobs:
   read-aws-policies:
@@ -23,10 +25,14 @@ jobs:
     strategy:
       matrix:
         include:
-          - env: dev
+          - env: development
             account_id: '567749996660'
-          - env: prod  
+          - env: production  
             account_id: '123456789012'
+          - env: management
+            account_id: '987654321098'
+          - env: monitoring
+            account_id: '456789012345'
     
     steps:
     - name: Checkout repository
@@ -39,7 +45,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+        aws-region: eu-west-1
     
     - name: Read AWS Role Policies
       if: matrix.env == inputs.environment
@@ -73,4 +79,14 @@ jobs:
           inline_statements=$(jq '.policies.inline.Statement | length' "${{ steps.read-policies.outputs.policies-file }}")
           echo "- **Managed Policies**: $managed_count" >> $GITHUB_STEP_SUMMARY
           echo "- **Inline Policy Statements**: $inline_statements" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Managed Policies:" >> $GITHUB_STEP_SUMMARY
+          if [[ $managed_count -gt 0 ]]; then
+            jq -r '.policies.managed[]' "${{ steps.read-policies.outputs.policies-file }}" | while read policy; do
+              echo "- $policy" >> $GITHUB_STEP_SUMMARY
+            done
+          else
+            echo "- None" >> $GITHUB_STEP_SUMMARY
+          fi
         fi
