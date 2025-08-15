@@ -1,0 +1,58 @@
+name: Module Version Checker
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Directory to scan'
+        required: true
+        default: 'units'
+        options:
+          - units
+        type: choice
+      outdated-only:
+        description: 'Show only outdated modules'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  test-module-checker:
+    runs-on: ubuntu-latest
+    name: Test Module Version Checker
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Run Terraform Module Version Checker
+      id: run-checker
+      uses: GergoNagy94/devops-tools/terraform-version-checker@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        environment: ${{ inputs.environment }}
+        outdated-only: ${{ inputs.outdated-only }}
+    
+    - name: Upload module version report
+      uses: actions/upload-artifact@v4
+      with:
+        name: terraform-versions-${{ github.run_number }}
+        path: ${{ steps.run-checker.outputs.report-file }}
+    
+    - name: Display module version summary
+      shell: bash
+      run: |
+        echo "## Terraform Module Version Report" >> $GITHUB_STEP_SUMMARY
+        echo "- **Environment**: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Show Outdated Only**: ${{ inputs.outdated-only }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Outdated Modules Found**: ${{ steps.run-checker.outputs.outdated-count }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Report File**: ${{ steps.run-checker.outputs.report-file }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ -f "${{ steps.run-checker.outputs.report-file }}" ]]; then
+          echo "### Report Content:" >> $GITHUB_STEP_SUMMARY
+          echo '```yaml' >> $GITHUB_STEP_SUMMARY
+          cat "${{ steps.run-checker.outputs.report-file }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        fi
